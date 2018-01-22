@@ -1,0 +1,177 @@
+# The purpose of this algorithm is for investment. It simply enter the US 9 major sectors when markets are in a uptrend, and exits in a downtrend.
+
+# This algorithm exhibits equities like returns, but with the volatility and drawdown of 20 year US treasury bonds.
+
+from zipline.utils.tradingcalendar import get_early_closes
+from numpy import isnan, matrix, array, zeros, empty, sqrt, round, ones, dot, append, mean, cov, transpose, linspace
+import numpy as np
+import talib
+import pandas as pd
+import scipy.optimize
+import operator
+from pytz import timezone
+import statsmodels.api as sm
+import statsmodels.tsa.stattools as ts
+
+
+# Setup our variables
+def initialize(context):
+
+    
+    context.rsi_state = True
+    context.pos = 0
+    
+    context.fast_lb = 100 # If 100 day RSI average is above 50, we consider the market is rising and enter positions
+    context.slow_lb = 200 # If 200 day RSI average is below 50, we consider the market is in a downtrend and exit all positions.
+    context.bond = sid(23921)
+    context.safe = sid(23911)
+    context.spy = symbol('SPY') # S&P500 ETF index
+    context.secs =   [ sid(19662),  # XLY Consumer Discrectionary SPDR Fund   
+                       sid(19656),  # XLF Financial SPDR Fund  
+                       sid(19658),  # XLK Technology SPDR Fund  
+                       sid(19655),  # XLE Energy SPDR Fund  
+                       sid(19661),  # XLV Health Care SPRD Fund  
+                       sid(19657),  # XLI Industrial SPDR Fund  
+                       sid(19659),  # XLP Consumer Staples SPDR Fund   
+                       sid(19654),  # XLB Materials SPDR Fund  
+                       sid(19660)]  # XLU Utilities SPRD Fund
+                       #sid(26669)]  # vnq
+        
+    context.lev = 1 # Leverage to use. 
+    context.weights = context.lev * 0.1111
+
+    set_slippage(slippage.FixedSlippage(spread=0.01))
+    set_commission(commission.PerShare(cost=0.0075, min_trade_cost=0))
+    schedule_function(rebalance_eq_weight, date_rules.month_start(), time_rules.market_open(minutes=90)) 
+    schedule_function(record_data, date_rules.every_day(), time_rules.market_close())
+
+
+    
+    
+def record_data(context,data):
+    position = context.portfolio.positions
+    tlt_pos = position[context.bond].amount*position[context.bond].last_sale_price
+    shy_pos = position[context.safe].amount*position[context.safe].last_sale_price
+    
+
+    
+
+
+    record(tlt=tlt_pos)
+
+    record(shy=shy_pos)
+
+
+
+
+       
+def rebalance_eq_weight(context, data):
+
+    positions = context.portfolio.positions
+    
+    #Find 100 day linear regression slope for TLT, SHY and SPY
+    
+    tltm = round(regression(context,data,context.bond), 3)
+    shym = round(regression(context,data,context.safe),3)
+    spym = round(regression(context,data,context.spy),3)
+    log.info("Slope of TLT: %s" % tltm)
+    log.info("Slope of SHY: %s" % shym)
+    log.info("Slope of SPY: %s" % spym)
+    
+
+    # If 100 day SPY regression slope is lower than SHY or TLT
+    # And one of the following is true
+    # 1) 100 day and 200 day moving average RSI for SPY is < 50
+    # 2) SPY price is below 1.01*200 day moving average
+    # Switch to bonds and exit all sector ETFs
+    if check_market(context,data) == False and spym < shym and spym < tltm:
+        for s in context.secs:
+            if positions[s].amount >= 1:
+                order_target_percent(s,0)
+                
+  
+        
+    # Buy TLT or SHY, depending on which one has higher 100 day regression slope
+        if tltm > shym:
+            log.info("Long TLT")
+            order_target_percent(context.bond, 1)
+            order_target_percent(context.safe, 0)
+        else:
+            log.info("Long SHY")
+            order_target_percent(context.bond, 0)
+            order_target_percent(context.safe, 1)
+    
+    
+    
+    # Otherwise in normal conditions, long 10 sectors at equal weights, rebalanced monthly
+    else:
+        log.info("Long 10 sectors equal weight")
+        for s in context.secs:
+            order_target_percent(s,context.weights)
+
+        order_target_percent(context.bond, 0)
+        order_target_percent(context.safe, 0)        
+
+                
+  
+# 100 day and 200 day RSI moving average calculation
+def check_market(context,data):
+    slow_rsi = []
+    fast_rsi = []
+    price = data.history(context.spy, 'price', 250, '1d')
+
+
+    rsi = talib.RSI(price, timeperiod=20)
+      
+    for i in range(1,context.slow_lb+1):
+ 
+        slow_rsi.append(rsi[-i])
+    for i in range(1,context.fast_lb+1):
+        
+        fast_rsi.append(rsi[-i])
+       
+    slow = sum(slow_rsi)/len(slow_rsi)
+    fast = sum(fast_rsi)/len(fast_rsi)
+    
+    #If 100 day moving average RSI > 50, stay in market
+    if fast > 50:
+        context.rsi_state = True
+        return True
+    
+    
+    #If 100 day and 200 day moving average RSI < 50, exit market
+    if slow < 50 and fast < 50:
+        context.rsi_state = False
+        return False
+    
+    
+    #If price is below 101% of 250 day moving average, exit market
+    if price[-1] < price.mean()*1.01:
+        return False
+    
+    #If 100 day linear regression slope of SPY is less than 100 day linear regression of TLT 20 year bonds
+    #Exit market
+    if regression(context,data,context.spy) < regression(context,data, context.bond):
+        return False
+    
+    #If none of triggers above happened, stay in market
+    return True
+
+def regression(context, data, s):
+    #Calculates linear regression
+    prices = data.history(s, 'price', 100, '1d')
+
+    X=range(len(prices))
+
+    A=sm.add_constant(X)        
+    Y = prices.values
+        
+    # Run regression y = ax + b
+    results = sm.OLS(Y,A).fit()
+    (b, a) =results.params
+        
+        # a is daily return.  Multiply by 252 to get annualized trend line slope
+    slope = a / Y[-1] * 100       # Daily return regression * 1 year
+
+    
+    return slope
