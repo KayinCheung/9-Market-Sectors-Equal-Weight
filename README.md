@@ -1,10 +1,27 @@
-# 9-Market-Sectors-Equal-Weight
+## 9 Market Sectors Equal Weight
 A simple Quantopian algorithm that keeps you equally invested in the 9 major market sectors and switches to bonds during market downtrends.
 
-# Terminology
+## Terminology
 SPY - S&P 500 index
+
 SHY - 1-3 Year treasure bonds
+
 TLT - 20 Year treasury bonds
+
+### 9 Market sectors consist of 
+
+XLY - Consumer Discrectionary SPDR Fund   
+XLF -  Financial SPDR Fund  
+XLK - Technology SPDR Fund  
+XLE - Energy SPDR Fund  
+XLV - Health Care SPRD Fund  
+XLI - Industrial SPDR Fund  
+XLP - Consumer Staples SPDR Fund   
+XLB - Materials SPDR Fund  
+XLU - Utilities SPRD Fund
+
+All market sectors are rebalanced monthly to 11.11% of portfolio weight.
+
 
 # How it works
 
