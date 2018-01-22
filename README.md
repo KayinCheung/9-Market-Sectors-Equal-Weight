@@ -57,7 +57,7 @@ The algorithm exits your positions, and enters into either TLT or SHY, depending
 
 
 ## How to use it
-This algorithm can be copy pasted in Quantopian, which allows you to link an algo to your broker account in Interactive Brokers or Robinhood. You can also backtest the algorithm at the beginning of each month and follow it's trades to manually enter/exit positions.
+This algorithm can be copy pasted in Quantopian, which allows you to link an algo to your broker account in Interactive Brokers or Robinhood. Alternavitely you can also backtest the algorithm at the beginning of each month and follow it's trades to manually enter/exit positions.
 
 
 ### Backtesting parameters
