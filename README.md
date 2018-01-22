@@ -1,5 +1,18 @@
 ## 9 Market Sectors Equal Weight
-A simple Quantopian algorithm that keeps you equally invested in the 9 major market sectors and switches to bonds during market downtrends.
+A simple algorithm that keeps you equally invested in the 9 major market sectors and switches to bonds during market downtrends.
+
+## Backtest results of algo
+Backtest period - 1 Jan 2004 to 19 Jan 2018
+
+![algo result](https://user-images.githubusercontent.com/24837709/35205429-1c4fb44a-ff70-11e7-8e9e-06d97a1011b8.png)
+
+Signifcantly reduces drawdown during financial crisis - 21.04% vs 55%
+
+Improves returns (mainly due to lower drawdowns) 374.4% to 232.01%
+
+Outside of monthly rebalances, the algo only liquidated its positions 8 times in 13 years. It's similar to buy and hold but uses simple indicators or downtrends to exit the market automatically and re-enter the market after the recession.
+
+
 
 ## Terminology
 SPY - S&P 500 index
@@ -41,17 +54,6 @@ AND either one of below is true
 - 100 day moving average RSI for SPY is below TLT
 
 The algorithm exits your positions, and enters into either TLT or SHY, depending which has a higher 100 day regression slope.
-
-## Backtest results of algo
-Backtest period - 1 Jan 2004 to 19 Jan 2018
-
-![algo result](https://user-images.githubusercontent.com/24837709/35205429-1c4fb44a-ff70-11e7-8e9e-06d97a1011b8.png)
-
-Signifcantly reduces drawdown during financial crisis - 21.04% vs 55%
-
-Improves returns (mainly due to lower drawdowns) 374.4% to 232.01%
-
-Outside of monthly rebalances, the algo only liquidated its positions 8 times in 13 years. It's similar to buy and hold but uses simple indicators or downtrends to exit the market automatically and re-enter the market after the recession.
 
 
 ## How to use it
