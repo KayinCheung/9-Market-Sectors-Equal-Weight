@@ -29,7 +29,7 @@ All market sectors are rebalanced monthly to 11.11% of portfolio weight.
 This algorithm keeps you equally invested in the 9 market sectors most of the time. The weighting of these 9 sectors are rebalanced 90 minutes after open on the first trading day of each month. 
 
 ## Exiting the market
-If the algorithm detects a downtrend or recession, it exits the 9 market sectors and enters bonds. The below logic governs whether t
+If the algorithm detects a downtrend or recession, it exits the 9 market sectors and enters bonds. The below logic governs whether 9 sectors or bonds are held
 
 If 100 day SPY regression slope is lower than SHY and TLT 
 
