@@ -6,9 +6,7 @@ Backtest period - 1 Jan 2004 to 19 Jan 2018
 
 ![algo result](https://user-images.githubusercontent.com/24837709/35205429-1c4fb44a-ff70-11e7-8e9e-06d97a1011b8.png)
 
-Signifcantly reduces drawdown during financial crisis - 21.04% vs 55%
-
-Improves returns (mainly due to lower drawdowns) 374.4% to 232.01%
+Signifcantly reduces drawdown during financial crisis while improving returns.
 
 Outside of monthly rebalances, the algo only liquidated its positions 8 times in 13 years. It's similar to buy and hold but uses simple indicators or downtrends to exit the market automatically and re-enter the market after the recession.
 
